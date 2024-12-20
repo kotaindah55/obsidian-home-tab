@@ -1,4 +1,4 @@
-import { Notice, type App, type View } from "obsidian";
+import { Notice, type App, type View, Platform } from "obsidian";
 import type HomeTab from "./main";
 import { writable, type Writable, get } from "svelte/store";
 import HomeTabFileSuggester from "src/suggester/homeTabSuggester";
@@ -74,8 +74,8 @@ export default class HomeTabSearchBar{
             this.createDefaultSuggester();
         }
         
-        // 如果是 URL，切换到 WebViewerSuggester
-        if (query && isValidUrl(query)) {
+        // 如果是 URL 且不在移动端，切换到 WebViewerSuggester
+        if (query && isValidUrl(query) && !Platform.isMobile) {
             if (!(this.fileSuggester instanceof WebViewerSuggester)) {
                 // 确保先关闭旧的建议器
                 this.fileSuggester.close();
@@ -129,8 +129,8 @@ export default class HomeTabSearchBar{
     }
 
     private createSuggester(query: string): void {
-        // 如果是 URL，使用 WebViewerSuggester
-        if (query && isValidUrl(query)) {
+        // 如果是 URL 且不在移动端，使用 WebViewerSuggester
+        if (query && isValidUrl(query) && !Platform.isMobile) {
             this.fileSuggester = new WebViewerSuggester(this.plugin.app, this.plugin, this.view, this);
             this.fileSuggester.onInput();
             return;
@@ -149,8 +149,8 @@ export default class HomeTabSearchBar{
         const filterEl = get(this.activeExtEl)
         const query = get(this.searchBarEl)?.value?.trim() || '';
 
-        // 如果是 URL，始终使用 WebViewerSuggester
-        if (query && isValidUrl(query)) {
+        // 如果是 URL 且不在移动端，始终使用 WebViewerSuggester
+        if (query && isValidUrl(query) && !Platform.isMobile) {
             filterEl.toggleClass('hide', true);
             this.createSuggester(query);
             return;

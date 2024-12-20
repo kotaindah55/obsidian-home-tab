@@ -42,7 +42,7 @@ esbuild.build({
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
 	// outfile: prod ? 'main.js' : './dist/main.js',
-	outfile: prod ? 'main.js' : 'H:/Docs/Obsinote/.obsidian/plugins/home-tab/main.js',
+	outfile: prod ? './dist/main.js' : 'H:/Docs/Obsinote/.obsidian/plugins/home-tab/main.js',
 	plugins: [
 		esbuildSvelte({
 		  compilerOptions: { css: true },
