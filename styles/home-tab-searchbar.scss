@@ -1,0 +1,61 @@
+@use 'variables' as vars;
+
+.home-tab-searchbar-container {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	position: sticky;
+	top: 0;
+	z-index: 1;
+}
+
+.home-tab-searchbar {
+	display: flex;
+	width: 50%;
+	min-width: 250px;
+	max-width: 700px;
+	margin: 0 auto;
+
+	height: vars.$searchbar-height;
+
+	background-color: var(--background-modifier-form-field);
+	border: var(--input-border-width) solid var(--background-modifier-border);
+	padding: var(--size-2-3);
+	border-radius: var(--input-radius);
+	outline: none;
+}
+
+.home-tab-searchbar.is-active {
+	border-bottom: none !important;
+	border-bottom-left-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+.home-tab-searchbar:hover,
+.home-tab-searchbar:has(+.home-tab-suggestion-container:hover) {
+	border-color: var(--background-modifier-border-hover);
+}
+
+.home-tab-searchbar input {
+	width: 100%;
+	height: 100%;
+	box-shadow: none;
+	font-size: var(--font-ui-medium);
+	background: none;
+	border: none;
+	padding-left: 12px;
+}
+
+.home-tab-searchbar input:hover {
+	background: none;
+	border: none;
+}
+
+.home-tab-searchbar input:focus, .home-tab-searchbar input:focus-visible {
+	box-shadow: none;
+}
+
+.home-tab-searchbar input:hover {
+	background: none;
+	border: none;
+}

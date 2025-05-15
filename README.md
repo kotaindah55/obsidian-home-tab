@@ -7,7 +7,7 @@ Obsidian Home tab is an [Obsidian](https://obsidian.md/) plugin that adds a brow
 
 You can search any local file in your vault, both markdown notes and attachments.
 
-![](images/home-tab.png)
+![](docs/res/home-tab.png)
 
 This plugin is not meant to be a replacement for the default Quick switcher or any alternative one like [Another quick switcher](https://github.com/tadashi-aikawa/obsidian-another-quick-switcher) (from which I took inspiration), but rather a faster way to open a note or a file after opening a new tab.
 
@@ -20,7 +20,7 @@ To easily find a file you can filter the search by using filters for the file ty
 
 You can activate a filter by writing the filter key (see table below) and pressing tab. To remove the filter press backspace.
 
-![](images/search_filters.png)
+![](docs/res/search_filters.png)
 
 #### Filters keys
 The following filters are available:
@@ -34,7 +34,7 @@ The following filters are available:
 | `pdf` | `pdf` |  
 | `canvas` | `canvas` |
 
-![](images/filters_gif.gif)
+![](docs/res/filters_gif.gif)
 
 ### Embedded search bar
 You can embed the Home tab view in any note with options to show recent files, starred files, or only the search bar.
@@ -52,7 +52,7 @@ show starred files
 ```
 ````
 
-![](images/embedded_searchbar.png)
+![](docs/res/embedded_searchbar.png)
 
 
 ### Starred files
@@ -60,11 +60,11 @@ If enabled, starred files are automatically displayed under the search bar.
 
 By hovering the top right corner, you can unstar a file or change the displayed icon.
 
-![](images/starred_files-options.png)
+![](docs/res/starred_files-options.png)
 
 ## Settings
 
-![](images/settings-tab.png)
+![](docs/res/settings-tab.png)
 
 ---
 ## Known issues

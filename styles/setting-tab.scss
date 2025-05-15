@@ -1,0 +1,19 @@
+.wide-input-container {
+	width: 100%;
+}
+
+.setting-item-info.compressed {
+	width: 40%;
+}
+
+.setting-item-info.ultra-compressed {
+	width: 20%;
+}
+
+input[type='text'].mod-invalid {
+	outline: 2px solid var(--color-red);
+}
+
+.home-tab-icon-suggestion .suggestion-icon {
+	margin-inline-end: var(--size-2-2);
+}

@@ -1,0 +1,36 @@
+[2.0.0]
+### New features
+- Clicking on Omnisearch's search result makes jump to the first match.
+- Support custom icons from [Iconic][] plugin for the file icons.
+- Add buttons above displayed files to switch between bookmarks and recents.
+- (Desktop only) Support dragging displayed files to be dropped as link/new tab.
+- (Web search) Add "Search for" and "Go to" suggestion whenever typing in search bar.
+
+### Adjustments
+- Refreshed UI.
+- Suggestion is no longer pushing down the displayed files.
+- Use Webviewer instead of Surfing (Surfing will be brought back again in the future).
+- Icon customizing on bookmarks now relies on [Iconic][].
+
+### Optimization
+Home tab will only be refreshed after closing Settings in the case of settings change.
+
+### Bug fixes
+- Default new tab view appears before changing to the Home tab view.
+- (Mobile) Suggestion wasn't shown when selecting custom font.
+
+### Development
+Porting Svelte to the [version 5.x][Svelte5].
+
+Special thanks to **[Olrenso][]** and **[Moyf][]**.
+
+[Iconic]: https://github.com/gfxholo/iconic
+[Svelte5]: https://svelte.dev/docs/svelte/v5-migration-guide
+[Olenso]: https://github.com/olrenso/obsidian-home-tab
+[Moyf]: https://github.com/Moyf/obsidian-home-tab
+---
+
+// A changelog must be opened by a version tag wrapped by square brackets,
+// and closed by three consecutive dashes.
+
+// Latest changelog must be located in the beginning of the document.

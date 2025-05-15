@@ -1,0 +1,112 @@
+@use 'variables' as vars;
+
+.home-tab-suggestion-container {
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	top: vars.$searchbar-height;
+
+	width: 50%;
+	min-width: 250px;
+	max-width: 700px;
+	margin: 0 auto;
+
+	background: var(--background-modifier-form-field);
+
+	border: var(--input-border-width) solid var(--background-modifier-border);
+	border-top-color: var(--background-secondary);
+	border-radius: 0 0 var(--input-radius) var(--input-radius);
+}
+
+.home-tab-searchbar:hover+.home-tab-suggestion-container,
+.home-tab-suggestion-container:hover {
+	border-left-color: var(--background-modifier-border-hover);
+	border-right-color: var(--background-modifier-border-hover);
+	border-bottom-color: var(--background-modifier-border-hover);
+}
+
+.home-tab-searchbar.embedded+.home-tab-suggestion-container, .home-tab-suggestion-container.is-phone{
+	width: 90%;
+}
+
+.home-tab-suggestion-title {
+	display: flex;
+	word-break: break-word;
+}
+
+.home-tab-suggestion-title.is-unresolved {
+	opacity: 0.4;
+}
+
+.home-tab-suggestion-description, .home-tab-suggestion-filepath, .home-tab-suggestion-tip {
+	display: flex;
+	align-items: center;
+	justify-content: left;
+
+	color: var(--text-faint);
+}
+
+.home-tab-suggestion-description, .home-tab-suggestion-tip {
+	font-size: var(--font-ui-small)
+}
+
+.home-tab-suggestion-description svg, .home-tab-suggestion-filepath svg {
+	margin-right: 5px;
+	flex: 1 0 auto;
+}
+
+.home-tab-suggestion-description span, .home-tab-suggestion-filepath span {
+	white-space: break-spaces;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.home-tab-suggestion-filepath {
+	font-size: var(--font-ui-smaller);
+	margin-left: var(--size-4-3);
+}
+
+.home-tab-suggestion-file-tag {
+	min-width: fit-content;
+}
+
+.home-tab-suggestion-file-tag.hide {
+	display: none;
+}
+
+.home-tab-suggestion-container .suggestion {
+	flex: 1 0 auto;
+	overflow-x: hidden;
+	max-height: 60vh;
+}
+
+.suggestion.use-accent-color .is-selected .home-tab-suggestion-title.is-unresolved {
+	color: var(--text-on-accent);
+	opacity: 0.6;
+}
+
+.suggestion.use-accent-color .is-selected {
+	background-color: var(--interactive-accent);
+}
+
+.suggestion.use-accent-color .is-selected,
+.suggestion.use-accent-color .is-selected .home-tab-suggestion-filepath,
+.suggestion.use-accent-color .is-selected .home-tab-suggestion-description, 
+.suggestion.use-accent-color .is-selected .home-tab-suggestion-tip {
+	color: var(--text-on-accent);
+}
+
+.suggester-additional-info {
+	border-top: 1px solid var(--background-secondary);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	padding: var(--size-4-2);
+	text-align: center;
+}
+
+.home-tab-hotkey-suggestions {
+	display: flex;
+	align-items: center;
+	justify-content: space-evenly;
+	flex-wrap: wrap;
+}

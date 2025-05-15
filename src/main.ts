@@ -1,186 +1,158 @@
-import { 
-	App, 
-	Plugin, 
-	WorkspaceLeaf, 
-	WorkspaceMobileDrawer, 
-	WorkspaceSplit, 
-	WorkspaceTabs,
-	ItemView, 
-	ViewStateResult,
-	MarkdownView 
-} from 'obsidian';
-import { EmbeddedHomeTab, HomeTabView, VIEW_TYPE } from 'src/homeView';
-import { HomeTabSettingTab, DEFAULT_SETTINGS, type HomeTabSettings } from './settings'
-import { pluginSettingsStore, bookmarkedFiles } from './store'
-import { RecentFileManager } from './recentFiles';
-import { bookmarkedFilesManager } from './bookmarkedFiles';
+import { App, debounce, Platform, Plugin, type PluginManifest } from 'obsidian';
+import { DEFAULT_SETTINGS, type HomeTabSettings } from 'src/settings/settings-config';
+import { RecentFileManager } from 'src/file-manager/recent-files';
+import { BookmarkedFileManager } from 'src/file-manager/bookmarked-files';
+import { HOMETAB_VIEW_TYPE, HomeTabEmbed, HomeTabView } from 'src/ui/view';
+import { HomeTabSettingTab } from 'src/settings/setting-tab';
+import { bookmarkedFileStore, settingsStore } from 'src/store';
+import type { uninstaller } from 'monkey-around';
+import { proxifySettings } from 'src/proxy';
+import { patchIconic } from 'src/patch/iconic-patch';
+import { proxifyViewFieldOnWorkspaceLeaf } from 'src/patch/workspace-leaf-patch';
 
-declare module 'obsidian'{
-	interface App{
-		internalPlugins: InternalPlugins
-		plugins: Plugins
-		dom: any
-		isMobile: boolean
-	}
-	interface InternalPlugins{
-		getPluginById: Function
-		plugins: {
-			bookmarks: BookmarksPlugin
-		}
-	}
-	interface Plugins{
-		getPlugin: (id: string) => Plugin
-	}
-	interface BookmarksPlugin extends Plugin{
-		instance: {
-			items: BookmarkItem[]
-			getBookmarks: () => BookmarkItem[]
-			removeItem: (item: BookmarkItem) => void
-		}
-	}
-	interface BookmarkItem{
-		type: string,
-		title: string | undefined,
-		path: string
-	}
-	interface config{
-		nativeMenus: boolean
-	}
-	interface Vault{
-		config: config
-	}
-	interface Workspace{
-		createLeafInTabGroup: Function
-	}
-	interface WorkspaceLeaf{
-		rebuildView: Function
-		parent: WorkspaceTabs | WorkspaceMobileDrawer
-		activeTime: number
-		app: App
-	}
-	interface WorkspaceSplit{
-		children: WorkspaceLeaf[]
-	}
-	interface TFile{
-		deleted: boolean
-	}
-}
+export default class HomeTabPlugin extends Plugin {
+	public settings: HomeTabSettings;
+	public activeHomeTabEmbeds: HomeTabEmbed[];
+	public recentFileManager: RecentFileManager;
+	public bookmarkedFileManager: BookmarkedFileManager;
+	public refreshQueued: boolean = false;
 
-export default class HomeTab extends Plugin {
-	settings: HomeTabSettings;
-	recentFileManager: RecentFileManager
-	bookmarkedFileManager: bookmarkedFilesManager
-	activeEmbeddedHomeTabViews: EmbeddedHomeTab[]
+	private patchContracts: uninstaller[] = [];
+
+	constructor(app: App, manifest: PluginManifest) {
+		super(app, manifest);
+	}
 	
-	async onload() {
-		console.log('Loading home-tab plugin')
+	public async onload() {
+		console.log('Loading Home Tab (mod) plugin');
 		
 		await this.loadSettings();
-		this.addSettingTab(new HomeTabSettingTab(this.app, this))
-		this.registerView(VIEW_TYPE, (leaf) => new HomeTabView(leaf, this));		
-
+		
 		// Replace new tabs with home tab view
-		this.registerEvent(this.app.workspace.on('layout-change', () => this.onLayoutChange()))
+		this.patchContracts.push(
+			proxifyViewFieldOnWorkspaceLeaf(this)
+		);
+
+		this.addSettingTab(new HomeTabSettingTab(this.app, this));
+		this.registerView(HOMETAB_VIEW_TYPE, leaf => new HomeTabView(leaf, this));		
+
 		// Refocus search bar on leaf change
-		this.registerEvent(this.app.workspace.on('active-leaf-change', (leaf: WorkspaceLeaf) => {if(leaf.view instanceof HomeTabView){leaf.view.searchBar.focusSearchbar()}}))
+		this.registerEvent(this.app.workspace.on('active-leaf-change', leaf => {
+			if (leaf?.view instanceof HomeTabView && !Platform.isMobile)
+				leaf.view.searchBarHandler.setFocus();
+		}));
 
-		pluginSettingsStore.set(this.settings) // Store the settings for the svelte components
+		settingsStore.set(this.settings); // Store the settings for the svelte components
 
-		this.activeEmbeddedHomeTabViews = []
+		this.activeHomeTabEmbeds = [];
 
-		this.recentFileManager = new RecentFileManager(this.app, this)
-		this.recentFileManager.load()
+		this.recentFileManager = new RecentFileManager(this.app, this);
+		this.bookmarkedFileManager = new BookmarkedFileManager(this, bookmarkedFileStore);
 
 		this.addCommand({
 			id: 'open-new-home-tab',
 			name: 'Open new Home tab',
-			callback: () => this.activateView(false, true)})
+			callback: () => this.activateView(false, true)
+		});
+
 		this.addCommand({
 			id: 'open-home-tab',
 			name: 'Replace current tab',
-			callback: () => this.activateView(true)})
+			callback: () => this.activateView(true)
+		});
 
 		// Wait for all plugins to load before check if the bookmarked plugin is enabled
 		this.app.workspace.onLayoutReady(() => {
-			if(this.app.internalPlugins.getPluginById('bookmarks')){
-				this.bookmarkedFileManager = new bookmarkedFilesManager(this.app, this, bookmarkedFiles)
-				this.bookmarkedFileManager.load()
-			}
+			this.recentFileManager.load();
+			this.bookmarkedFileManager.load();
 
 			this.registerMarkdownCodeBlockProcessor('search-bar', (source, el, ctx) => {
-				const view = this.app.workspace.getActiveViewOfType(MarkdownView)
-				if(view){
-					let embeddedHomeTab = new EmbeddedHomeTab(el, view, this, source)
-					this.activeEmbeddedHomeTabViews.push(embeddedHomeTab)
-					ctx.addChild(embeddedHomeTab)
-				}
-			})
+				let embeddedHomeTab = new HomeTabEmbed(el, this, source);
+				this.activeHomeTabEmbeds.push(embeddedHomeTab);
+				ctx.addChild(embeddedHomeTab);
+			});
 
-			if(this.settings.newTabOnStart){
+			if (this.settings.newTabOnStart) {
 				// If an Home tab leaf is already open focus it
-				const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE)
-				if(leaves.length > 0){
+				let leaves = this.app.workspace.getLeavesOfType(HOMETAB_VIEW_TYPE);
+				if (leaves.length > 0) {
 					this.app.workspace.revealLeaf(leaves[0])
 					// If more than one home tab leaf is open close them
 					leaves.forEach((leaf, index) => {
-						if(index < 1) return
-						leaf.detach()
-					})
-				}
-				else{
-					this.activateView(false, true)
+						if (index < 1) return;
+						leaf.detach();
+					});
+				} else {
+					this.activateView(false, true);
 				}
 				// Close all other open leaves
-				if(this.settings.closePreviousSessionTabs){
+				if (this.settings.closePreviousSessionTabs) {
 					// Get open leaves type
-					const leafTypes: string[] = []
-					this.app.workspace.iterateRootLeaves((leaf) => {
-						const leafType = leaf.view.getViewType()
-						if(leafTypes.indexOf(leafType) === -1 && leafType != VIEW_TYPE){
-							leafTypes.push(leafType)
-						}
-					})
-					leafTypes.forEach((type) => this.app.workspace.detachLeavesOfType(type))
+					let leafTypes: string[] = [];
+					this.app.workspace.iterateRootLeaves(leaf => {
+						let leafType = leaf.view.getViewType();
+						if (leafTypes.indexOf(leafType) < 0 && leafType != HOMETAB_VIEW_TYPE)
+							leafTypes.push(leafType);
+					});
+					leafTypes.forEach(type => this.app.workspace.detachLeavesOfType(type));
 				}
 			}
+
+			this._registerPatch();
 		})
 	}
 
-	onunload(): void {
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE)
-		this.activeEmbeddedHomeTabViews.forEach(view => view.unload())
-		this.recentFileManager.unload()
-		this.bookmarkedFileManager.unload()
+	public onunload(): void {
+		console.log('Unloading Home Tab (mod) plugin');
+		this.app.workspace.detachLeavesOfType(HOMETAB_VIEW_TYPE);
+		this.activeHomeTabEmbeds.forEach(embed => embed.unload());
+		this.recentFileManager.unload();
+		this.bookmarkedFileManager.unload();
+		this._uninstallPatch();
 	}
 
-	async loadSettings(): Promise<void> {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData())
+	public async loadSettings(): Promise<void> {
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		proxifySettings(this);
+		settingsStore.set(this.settings);
 	}
 
-	async saveSettings(): Promise<void> {
-		await this.saveData(this.settings)
-		pluginSettingsStore.update(() => this.settings)
+	public async saveSettings(): Promise<void> {
+		await this.saveData(this.settings);
+		settingsStore.update(() => this.settings);
 	}
 
-	private onLayoutChange(): void{
-		if(this.settings.replaceNewTabs){
-			this.activateView()
-		}
-	}
+	public requestSave = debounce(this.saveSettings, 20, true);
 
-	public activateView(overrideView?: boolean, openNewTab?: boolean):void {
-		const leaf = openNewTab ? this.app.workspace.getLeaf('tab') : this.app.workspace.getMostRecentLeaf()
+	public activateView(overrideView?: boolean, openNewTab?: boolean): void {
+		let leaf = openNewTab
+			? this.app.workspace.getLeaf('tab')
+			: this.app.workspace.getMostRecentLeaf();
 		// const leaf = newTab ? this.app.workspace.getLeaf() : this.app.workspace.getMostRecentLeaf()
-		if(leaf && (overrideView || leaf.getViewState().type === 'empty')){
-			leaf.setViewState({
-				type: VIEW_TYPE,
-			})
+		if (leaf && (overrideView || leaf.getViewState().type === 'empty')) {
+			leaf.setViewState({ type: HOMETAB_VIEW_TYPE });
 			// Focus newly opened tab
-			if(openNewTab){this.app.workspace.revealLeaf(leaf)}
+			if (openNewTab) this.app.workspace.revealLeaf(leaf);
 		}
 	}
 
-	public refreshOpenViews(): void {
-		this.app.workspace.getLeavesOfType(VIEW_TYPE).forEach((leaf) => leaf.rebuildView())
+	public refreshAllViews(): void {
+		this.app.workspace
+			.getLeavesOfType(HOMETAB_VIEW_TYPE)
+			.forEach(leaf => {
+				if (leaf.view instanceof HomeTabView)
+					leaf.rebuildView();
+			});
+	}
+
+	private _registerPatch(): void {
+		let iconicPlugin = this.app.plugins.getPlugin('iconic');
+		if (iconicPlugin) {
+			this.patchContracts.push(patchIconic(iconicPlugin));
+		}
+	}
+
+	private _uninstallPatch(): void {
+		this.patchContracts.forEach(uninstaller => uninstaller());
 	}
 }

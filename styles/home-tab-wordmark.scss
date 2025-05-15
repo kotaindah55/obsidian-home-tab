@@ -1,0 +1,19 @@
+.home-tab-logo svg {
+	height: unset;
+	width: unset;
+}
+
+.home-tab-wordmark-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 50px;
+}
+
+.home-tab:not(.embedded) .home-tab-wordmark-container {
+	padding-top: 100px;
+}
+
+.home-tab-wordmark h1 {
+	margin: unset;
+}

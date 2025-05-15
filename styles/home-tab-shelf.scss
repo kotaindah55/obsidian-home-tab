@@ -1,0 +1,55 @@
+.home-tab-shelf-header {
+	display: flex;
+	justify-self: center;
+	padding-block: 30px;
+	font-size: var(--font-medium);
+	gap: var(--size-2-2);
+	color: var(--text-muted);
+	width: 40%;
+	justify-content: center;
+}
+
+.home-tab-shelf-header-button {
+	display: flex;
+	padding: var(--size-2-3);
+	gap: var(--size-2-2);
+	flex: 0 1 120px;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--radius-s);
+}
+
+.home-tab-shelf-header-button:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.home-tab-shelf-header-button.is-active {
+	background-color: var(--background-modifier-hover);
+	color: var(--text-normal);
+	--icon-color: var(--text-normal);
+}
+
+.home-tab-shelf-header-icon {
+	display: flex;
+	align-items: center;
+}
+
+.home-tab-shelf-header-icon svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+	stroke-width: var(--icon-s-stroke-width);
+	stroke: var(--icon-color);
+}
+
+.home-tab-shelf-bookmarked-files-container,
+.home-tab-shelf-recent-files-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	
+	width: 65%;
+	max-width: 900px;
+	margin: auto;
+	gap: 5px;
+}

@@ -7,12 +7,10 @@
 
 # npm
 node_modules
-package-lock.json
 
 # Don't include the compiled main.js file in the repo.
 # They should be uploaded to GitHub releases instead.
-# To be compitable with BRAT, add main.js too
-# main.js
+main.js
 
 # Exclude sourcemaps
 *.map
@@ -23,13 +21,17 @@ data.json
 # Exclude macOS Finder (System Explorer) View States
 .DS_Store
 
-.eslintignore
-.eslintrc
-.npmrc
-.esbuild.config.mjs
-version-bump.mjs
-# tsconfig.json
-versions.json
+# Build folder
+build
+dist
 
-ref/
-rel/
+# Deprecated code
+.deprecated
+*.deprecated
+
+# ignored
+.ignored
+*.ignored
+
+# Use styles/**.scss instead
+styles.css
