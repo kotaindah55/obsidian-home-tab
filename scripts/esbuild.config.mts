@@ -19,6 +19,8 @@ const context = await esbuild.context({
 		js: banner,
 	},
 	entryPoints: ["src/main.ts"],
+	mainFields: ["svelte", "browser", "module", "main"],
+    conditions: ["svelte", "browser"],
 	bundle: true,
 	external: [
 		"obsidian",

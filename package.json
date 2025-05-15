@@ -5,7 +5,7 @@
 	"main": "main.js",
 	"scripts": {
 		"dev": "npx tsx scripts/build-styles.mts && npx tsx scripts/esbuild.config.mts",
-		"build": "tsc -noEmit -skipLibCheck && npx tsx scripts/esbuild.config.mts production",
+		"build": "svelte-check --tsconfig tsconfig.json && npx tsx scripts/esbuild.config.mts production",
 		"build-styles": "npx tsx scripts/build-styles.mts production",
 		"version": "npx tsx scripts/version-bump.mts",
 		"changelog": "npx tsx scripts/print-changelog.mts",
@@ -31,6 +31,7 @@
 		"obsidian": "latest",
 		"sass": "^1.88.0",
 		"svelte": "^5.30.0",
+		"svelte-check": "^4.2.1",
 		"svelte-preprocess": "^6.0.3",
 		"tslib": "^2.8.1",
 		"tsx": "^4.19.4",
