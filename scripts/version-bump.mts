@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from "fs";
 import { getLastChangelog } from "./utils.mjs";
-import { spawnSync } from "child_process";
+import { execSync } from "child_process";
 
 export type ManifestConfig = {
 	version: string;
@@ -34,9 +34,8 @@ packageConf.version = targetVersion;
 writeFileSync("package.json", JSON.stringify(packageConf, null, "\t"));
 
 try {
-	spawnSync("git", ["add", tobeCommitted]);
-	spawnSync("git", ["commit", tobeCommitted, "-m", message]);
-	spawnSync("git", ["push", "origin"]);
+	execSync(`git add ${tobeCommitted} && git commit ${tobeCommitted} -m "${message}"`);
+	execSync("git push origin");
 	console.log(`Package has been successfully bumped to: ${targetVersion}`);
 } catch (error) {
 	console.log("Error encountered when version bumping: ", error);
