@@ -1,10 +1,10 @@
 {
 	"name": "home-tab-mod",
-	"version": "1.2.2",
+	"version": "2.0.0",
 	"description": "A browser-like search tab for your local files.",
 	"main": "main.js",
 	"scripts": {
-		"dev": "npx tsx scripts/esbuild.config.mts && npx tsx scripts/build-styles.mts",
+		"dev": "npx tsx scripts/build-styles.mts && npx tsx scripts/esbuild.config.mts",
 		"build": "tsc -noEmit -skipLibCheck && npx tsx scripts/esbuild.config.mts production",
 		"build-styles": "npx tsx scripts/build-styles.mts production",
 		"version": "npx tsx scripts/version-bump.mts",
@@ -12,7 +12,9 @@
 		"publish": "npx tsx scripts/publish.mts",
 		"lock": "npx tsx scripts/lock-package.mts"
 	},
-	"keywords": ["obsidian-plugin"],
+	"keywords": [
+		"obsidian-plugin"
+	],
 	"author": "Renso, Moyf, Kotaindah55",
 	"license": "MIT",
 	"devDependencies": {
