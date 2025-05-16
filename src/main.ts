@@ -37,8 +37,6 @@ export default class HomeTabPlugin extends Plugin {
 				leaf.view.searchBarHandler.setFocus();
 		}));
 
-		settingsStore.set(this.settings); // Store the settings for the svelte components
-
 		this.activeHomeTabEmbeds = [];
 
 		this.recentFileManager = new RecentFileManager(this.app, this);
