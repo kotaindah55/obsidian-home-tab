@@ -17,7 +17,7 @@ export default class HomeTabPlugin extends Plugin {
 	public bookmarkedFileManager: BookmarkedFileManager;
 	public refreshQueued: boolean = false;
 
-	private patchContracts: uninstaller[] = [];
+	private _patchContracts: uninstaller[] = [];
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
@@ -27,11 +27,6 @@ export default class HomeTabPlugin extends Plugin {
 		console.log('Loading Home Tab (mod) plugin');
 		
 		await this.loadSettings();
-		
-		// Replace new tabs with home tab view
-		this.patchContracts.push(
-			proxifyViewFieldOnWorkspaceLeaf(this)
-		);
 
 		this.addSettingTab(new HomeTabSettingTab(this.app, this));
 		this.registerView(HOMETAB_VIEW_TYPE, leaf => new HomeTabView(leaf, this));		
@@ -148,11 +143,16 @@ export default class HomeTabPlugin extends Plugin {
 	private _registerPatch(): void {
 		let iconicPlugin = this.app.plugins.getPlugin('iconic');
 		if (iconicPlugin) {
-			this.patchContracts.push(patchIconic(iconicPlugin));
+			this._patchContracts.push(patchIconic(iconicPlugin));
 		}
+				
+		// Replace new tabs with home tab view
+		this._patchContracts.push(
+			proxifyViewFieldOnWorkspaceLeaf(this)
+		);
 	}
 
 	private _uninstallPatch(): void {
-		this.patchContracts.forEach(uninstaller => uninstaller());
+		this._patchContracts.forEach(uninstaller => uninstaller());
 	}
 }
