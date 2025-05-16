@@ -1,3 +1,8 @@
+[2.0.1]
+### Bug fixes
+- Default new tab appears after changing certain settings.
+- Some events do not fully detached, leads to memory leaks.
+---
 [2.0.0]
 ### New features
 - Clicking on Omnisearch's search result makes jump to the first match.
@@ -22,12 +27,10 @@ Home tab will only be refreshed after closing Settings in the case of settings c
 ### Development
 Porting Svelte to the [version 5.x][Svelte5].
 
-Special thanks to **[Olrenso][]** and **[Moyf][]**.
+Special thanks to @olrenso and @Moyf.
 
 [Iconic]: https://github.com/gfxholo/iconic
 [Svelte5]: https://svelte.dev/docs/svelte/v5-migration-guide
-[Olenso]: https://github.com/olrenso/obsidian-home-tab
-[Moyf]: https://github.com/Moyf/obsidian-home-tab
 ---
 
 // A changelog must be opened by a version tag wrapped by square brackets,
