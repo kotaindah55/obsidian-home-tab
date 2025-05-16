@@ -136,7 +136,7 @@ export default class HomeTabPlugin extends Plugin {
 			.getLeavesOfType(HOMETAB_VIEW_TYPE)
 			.forEach(leaf => {
 				if (leaf.view instanceof HomeTabView)
-					leaf.rebuildView();
+					leaf.view.rebuild();
 			});
 	}
 

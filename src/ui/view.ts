@@ -105,7 +105,20 @@ export class HomeTabView extends FileView {
 	}
 
 	public async onClose(): Promise<void> {
-		this.searchBarHandler.suggester?.close();
+	public async rebuild(): Promise<void> {
+		this.searchBarHandler.unload();
 		unmount(this.homepage);
-	}
+		this.contentEl.empty();
+
+		this.searchBarHandler = new SearchBarHandler(this.plugin, this);
+		this.homepage = mount(Homepage, {
+			target: this.contentEl,
+			props: {
+				app: this.plugin.app,
+				plugin: this.plugin,
+				view: this,
+				searchBarHandler: this.searchBarHandler
+			}
+		});
+
 }
