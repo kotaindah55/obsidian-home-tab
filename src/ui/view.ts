@@ -1,4 +1,4 @@
-import { App, FileView, MarkdownRenderChild, WorkspaceLeaf } from 'obsidian';
+import { App, ItemView, MarkdownRenderChild, WorkspaceLeaf } from 'obsidian';
 import { mount, unmount } from 'svelte';
 import { SearchBarHandler } from 'src/ui/searchbar-handler';
 import Homepage from 'src/ui/homepage.svelte';
@@ -66,7 +66,7 @@ export class HomeTabEmbed extends MarkdownRenderChild {
 	}
 }
 
-export class HomeTabView extends FileView {
+export class HomeTabView extends ItemView {
 	public readonly plugin: HomeTabPlugin;
 
 	public homepage: Homepage;
@@ -78,7 +78,6 @@ export class HomeTabView extends FileView {
 		this.leaf = leaf;
 		this.plugin = plugin;
 		this.navigation = true;
-		this.allowNoFile = true;
 		this.icon = 'search';
 
 		this.searchBarHandler = new SearchBarHandler(this.plugin, this);
