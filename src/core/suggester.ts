@@ -1,8 +1,14 @@
 // Inspired from @liamcain periodic notes suggest: https://github.com/liamcain/obsidian-periodic-notes/blob/main/src/ui/suggest.ts
 
-import { debounce, Scope, type App, type Debouncer } from 'obsidian';
+import {
+	Component as ObsidianComponent,
+	debounce,
+	Scope,
+	type App,
+	type Debouncer
+} from 'obsidian';
 import { get, writable, type Writable } from 'svelte/store';
-import { mount, unmount, type Component } from 'svelte';
+import { mount, unmount, type Component as SvelteComponent } from 'svelte';
 import SuggestionResult from 'src/ui/suggestion-result.svelte';
 
 export interface SuggesterViewOptions {
@@ -28,16 +34,16 @@ interface ISuggester<T> {
 }
 
 export class SuggestionSource<T> {
-	private _suggester: ISuggester<T>;
 	private _suggestions: T[];
 	private _selectedIndex: number;
-
+	
+	public suggester: ISuggester<T>;
 	public containerEl: Writable<HTMLElement>;
 	public sourceStore: Writable<T[]>;
 	public selectedIndexStore: Writable<number>;
 
 	constructor(suggester: ISuggester<T>, scope: Scope){
-		this._suggester = suggester;
+		this.suggester = suggester;
 
 		// Svelte store variables
 		this.sourceStore = writable();
@@ -49,21 +55,6 @@ export class SuggestionSource<T> {
 
 		this.setSuggestions([]);
 		this.setSelectedIndex(0);
-
-		scope.register([], 'ArrowUp', evt => {
-			evt.preventDefault();
-			this.setSelectedIndex(this._selectedIndex - 1);
-			this._suggester.scrollSelectedItemIntoView();
-		});
-		scope.register([], 'ArrowDown', evt => {
-			evt.preventDefault();
-			this.setSelectedIndex(this._selectedIndex + 1);
-			this._suggester.scrollSelectedItemIntoView();
-		});
-		scope.register([], 'Enter', evt => {
-			evt.preventDefault();
-			this._suggester.useSelectedItem(this.getSelected());
-		});
 	}
 
 	public setSuggestions(suggestions: T[]): void {
@@ -101,7 +92,13 @@ export class SuggestionSource<T> {
 export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	public readonly app: App;
 	public readonly win: Window;
-	public scope: Scope;
+	
+	/**
+	 * All events should be registered under this wrapper, in order to be
+	 * detached safely when this suggester is going to be destroyed.
+	 */
+	protected eventWrapper: ObsidianComponent;
+	protected scope: Scope;
 
 	protected inputEl: HTMLInputElement;
 	protected wrapperEl: HTMLElement;
@@ -116,7 +113,7 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	protected closingAnimationTimer: number | null;
 	protected closingAnimationRunning: boolean;
 
-	private _reqInputHandling: Debouncer<[e: Event], Promise<void>>;
+	private _reqInputHandling: Debouncer<[evt: Event], Promise<void>>;
 	private _lastValue: string;
 
 	constructor(
@@ -128,6 +125,7 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	) {
 		this.app = app;
 		this.win = app.dom.appContainerEl.win;
+		this.eventWrapper = new ObsidianComponent();
 		this.inputEl = inputEl;
 		this.scope = new Scope(this.app.scope);
 		this.source = new SuggestionSource(this, this.scope);
@@ -144,10 +142,8 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 			false
 		);
 		
-		this.inputEl.addEventListener('input', this._reqInputHandling);
-		this.inputEl.addEventListener('blur', this.close.bind(this));
-		
-		this.scope.register([], 'escape', this.close.bind(this));
+		this.registerEvents();
+		this.registerScope();
 		
 		this.viewOptions = viewOptions;
 		this.wrapperEl = wrapperEl;
@@ -221,6 +217,7 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 			this.win.clearTimeout(this.closingAnimationTimer);
 			this.closingAnimationTimer = null;
 		}
+
 		if (this.resultView) unmount(this.resultView);
 		this.resultView = undefined;
 		this.closingAnimationRunning = false;
@@ -228,8 +225,9 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	
 	public destroy(): void {
 		this.close();
-		this.inputEl.removeEventListener('input', this._reqInputHandling);
-		this.inputEl.removeEventListener('focus', this._reqInputHandling);
+
+		// Detached all registered events
+		this.eventWrapper.unload();
 	}
 	
 	public scrollSelectedItemIntoView(): void {
@@ -248,6 +246,32 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 			this.inputEl.dispatchEvent(new Event('input')); // Trigger input
 	}
 
+	protected registerEvents(): void {
+		this.eventWrapper.registerDomEvent(this.inputEl, 'input', this._reqInputHandling);
+		this.eventWrapper.registerDomEvent(this.inputEl, 'blur', this.close.bind(this));
+	}
+
+	protected registerScope(): void {
+		this.scope.register([], 'ArrowUp', evt => {
+			evt.preventDefault();
+			this.source.setSelectedIndex(this.source.getSelectedIndex() - 1);
+			this.scrollSelectedItemIntoView();
+		});
+
+		this.scope.register([], 'ArrowDown', evt => {
+			evt.preventDefault();
+			this.source.setSelectedIndex(this.source.getSelectedIndex() + 1);
+			this.scrollSelectedItemIntoView();
+		});
+
+		this.scope.register([], 'Enter', evt => {
+			evt.preventDefault();
+			this.useSelectedItem(this.source.getSelected());
+		});
+
+		this.scope.register([], 'escape', this.close.bind(this));
+	}
+
 	protected additionalCleaning(): void {}
 	protected onOpen(): void {}
 	protected onClose(): void {}
@@ -255,5 +279,5 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	abstract getSuggestions(input: string): T[] | Promise<T[]>;
 	abstract useSelectedItem(item: T, middleClick?: boolean): void;
 	abstract getComponentProps(suggestion: T): Record<string, unknown>;
-	abstract getComponentType(): Component;
+	abstract getComponentType(): SvelteComponent;
 }

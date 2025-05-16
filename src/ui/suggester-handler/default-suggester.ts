@@ -43,8 +43,7 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 
 		this.plugin = plugin;
 		this.view = view;
-		this._registerEvents();
-		this._registerScope();
+		this.app.metadataCache.onCleanCache(() => this._init());
 	}
 
 	protected onOpen(): void {
@@ -62,7 +61,6 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 			this._activeFilter.option !== FileType.MARKDOWN &&
 			this._activeFilter.option !== 'md'
 		) {
-			// eslint-disable-next-line no-unused-labels
 			devel: console.log('Close soon...');
 			this.close();
 			return;
@@ -82,11 +80,9 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 				refIndex: 0,
 				score: 0,
 			}]);
-			// eslint-disable-next-line no-unused-labels
 			devel: console.log('Input detected');
 			this.open();
 		} else {
-			// eslint-disable-next-line no-unused-labels
 			devel: console.log('No input detected');
 			this.close();
 		}
@@ -207,50 +203,33 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 		this.close();
 	}
 
-	private _registerEvents(): void {
-		this.app.metadataCache.onCleanCache(() => {
-			this._files = this.plugin.settings.markdownOnly
-				? this._filterSearchFiles(
-					{ type: FilterType.FILE_TYPE, option: FileType.MARKDOWN },
-					getSearchFiles(this.app, this.plugin.settings.unresolvedLinks)
-				)
-				: getSearchFiles(this.app, this.plugin.settings.unresolvedLinks);
+	protected registerEvents(): void {
+		super.registerEvents();
 
-			this._fuzzySearch = new FileFuzzySearch(this.app, this._files, { 
-				...DEFAULT_FUSE_OPTIONS,
-				ignoreLocation: true,
-				fieldNormWeight: 1.65,
-				keys: [
-					{ name: 'basename', weight: 1.5 },
-					{ name: 'aliases', weight: 0.1 },
-					...(this.plugin.settings.searchTitle ? [{ name: 'title', weight: 1.2 }] : []),
-					...(this.plugin.settings.searchHeadings ? [{ name: 'headings', weight: 1.0 }] : [])
-				]
-			})
-		});
-
-		this.view.registerEvent(this.app.vault.on(
+		this.eventWrapper.registerEvent(this.app.vault.on(
 			'create',
 			file => { if (file instanceof TFile) this._updateSearchFileList(file) }
 		));
 
-		this.view.registerEvent(this.app.vault.on(
+		this.eventWrapper.registerEvent(this.app.vault.on(
 			'delete',
 			file => { if (file instanceof TFile) this._updateSearchFileList(file) }
 		));
 	
-		this.view.registerEvent(this.app.vault.on(
+		this.eventWrapper.registerEvent(this.app.vault.on(
 			'rename',
 			(file, oldPath) => { if (file instanceof TFile) this._updateSearchFileList(file, oldPath) }
 		));
 
-		this.view.registerEvent(this.app.metadataCache.on(
+		this.eventWrapper.registerEvent(this.app.metadataCache.on(
 			'resolved',
 			() => this._updateUnresolvedFiles()
 		));
 	}
 
-	private _registerScope(): void {
+	protected registerScope(): void {
+		super.registerScope();
+
 		// Open file in new tab
 		this.scope.register(['Mod'], 'Enter', evt => {
 			evt.preventDefault();
@@ -267,6 +246,27 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 		this.scope.register(['Shift', 'Mod'], 'Enter', async evt => {
 			evt.preventDefault();
 			await this._handleFileCreation(undefined, true);
+		});
+	}
+
+	private _init(): void {
+		this._files = this.plugin.settings.markdownOnly
+			? this._filterSearchFiles(
+				{ type: FilterType.FILE_TYPE, option: FileType.MARKDOWN },
+				getSearchFiles(this.app, this.plugin.settings.unresolvedLinks)
+			)
+			: getSearchFiles(this.app, this.plugin.settings.unresolvedLinks);
+
+		this._fuzzySearch = new FileFuzzySearch(this.app, this._files, { 
+			...DEFAULT_FUSE_OPTIONS,
+			ignoreLocation: true,
+			fieldNormWeight: 1.65,
+			keys: [
+				{ name: 'basename', weight: 1.5 },
+				{ name: 'aliases', weight: 0.1 },
+				...(this.plugin.settings.searchTitle ? [{ name: 'title', weight: 1.2 }] : []),
+				...(this.plugin.settings.searchHeadings ? [{ name: 'headings', weight: 1.0 }] : [])
+			]
 		});
 	}
 

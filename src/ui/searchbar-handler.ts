@@ -13,6 +13,12 @@ export interface FilterSpec {
 	option?: string;
 }
 
+/**
+ * Get matched filter type with corresponding key. Returns `undefined`
+ * when there is no filter matched.
+ * 
+ * @param key {@link FilterKeysLookupTable}
+ */
 function _getFilterType(key: string): FilterType | void {
 	let lookupTable = FilterKeysLookupTable;
 	for (let type in lookupTable)
@@ -20,16 +26,21 @@ function _getFilterType(key: string): FilterType | void {
 			return type as FilterType;
 }
 
+/** Handle the searchbar and its suggestion. */
 export class SearchBarHandler {
 	public readonly app: App;
 	public readonly plugin: HomeTabPlugin;
 	
 	public view: HomeTabView | HomeTabEmbed;
 	public activeFilter: FilterSpec;
+
+	/** Element idicating currently active filter type. */
 	public activeExtEl: Writable<HTMLElement>;
 	public searchBarEl: Writable<HTMLInputElement>;
 	public suggestionContainerEl: Writable<HTMLElement>;
-	public suggester: DefaultSuggester | OmnisearchSuggester | WebSuggester;
+
+	/** May be `undefined` if this handler haven't been loaded yet. */
+	public suggester?: DefaultSuggester | OmnisearchSuggester | WebSuggester;
 	
 	private _onload?: () => unknown;
 
@@ -37,20 +48,22 @@ export class SearchBarHandler {
 		this.app = view.app
 		this.view = view;
 		this.plugin = plugin;
+		this.searchBarEl = writable();
+		this.activeExtEl = writable();
+		this.suggestionContainerEl = writable();
+		this._onload = onload;
+		
+		// Default filter.
 		this.activeFilter = {
 			type: isOmnisearchEnabled(this.app) && plugin.settings.omnisearch
 				? FilterType.OMNISEARCH
 				: FilterType.DEFAULT,
 			option: 'default'
 		};
-		this.searchBarEl = writable();
-		this.activeExtEl = writable();
-		this.suggestionContainerEl = writable();
-		this._onload = onload;
 	}
 
+	/** Set cursor on search bar. */
 	public setFocus(): void {
-		// Set cursor on search bar
 		get(this.searchBarEl)?.focus();
 	}
 
@@ -64,11 +77,17 @@ export class SearchBarHandler {
 		this._onload?.();
 	}
 
+	public unload(): void {
+		this.suggester?.close();
+	}
+
 	public updateActiveSuggester(filterKey: string) {
 		let filterType = _getFilterType(filterKey),
 			isFileFilter = filterType === FilterType.FILE_EXT || filterType === FilterType.FILE_TYPE,
 			filterOption = isFileFilter ? filterKey : undefined;
 
+		// Use default filter when there is no matched filter retrieved by
+		// _getFilterType(), or when both are equal.
 		if (
 			!filterType ||
 			this.activeFilter.type === filterType &&
@@ -88,7 +107,8 @@ export class SearchBarHandler {
 
 		this.activeFilter.type = filterType;
 		this.activeFilter.option = filterKey;
-		this.suggester.destroy();
+		// Remove previous suggester.
+		this.suggester?.destroy();
 
 		filterEl.setText(filterOption || filterType);
 
@@ -119,6 +139,8 @@ export class SearchBarHandler {
 		if (choosenSuggester) {
 			filterEl.toggleClass('hide', hideFilterTag);
 			this.suggester = new choosenSuggester(this.app, this.plugin, this.view, this);
+
+			// File filter should only be applied to DefaultSuggester.
 			if (isFileFilter && this.suggester instanceof DefaultSuggester)
 				this.suggester.setFileFilter(this.activeFilter);
 			this.suggester.setInput('');

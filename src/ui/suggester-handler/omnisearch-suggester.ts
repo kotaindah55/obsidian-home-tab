@@ -22,7 +22,6 @@ export class OmnisearchSuggester extends TextInputSuggester<ResultNoteApi> {
 			app, get(searchBar.searchBarEl), get(searchBar.suggestionContainerEl),
 			{
 				containerClass: `home-tab-suggestion-container ${Platform.isPhone ? 'is-phone' : ''}`,
-				// suggestionItemClass: 'suggestion-item omnisearch-result',
 				additionalClasses: `${plugin.settings.selectionHighlight === 'accentColor' ? 'use-accent-color' : ''}`,
 				additionalModalInfo: plugin.settings.showShortcuts
 					? generateHotkeyHints(DEFAULT_HOTKEY_HINTS, 'home-tab-hotkey-suggestions')
@@ -34,7 +33,6 @@ export class OmnisearchSuggester extends TextInputSuggester<ResultNoteApi> {
 		this.plugin = plugin;
 		this.view = view;
 		this.omnisearch = getOmnisearchApi(this.app);
-		this._registerScope();
 	}
 
 	protected onOpen(): void {
@@ -109,7 +107,9 @@ export class OmnisearchSuggester extends TextInputSuggester<ResultNoteApi> {
 		}
 	}
 
-	private _registerScope(): void {
+	protected registerScope(): void {
+		super.registerScope();
+
 		// Open file in new tab
 		this.scope.register(['Mod'], 'Enter', evt => {
 			evt.preventDefault();

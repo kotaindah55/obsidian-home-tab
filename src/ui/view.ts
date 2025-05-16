@@ -41,7 +41,7 @@ export class HomeTabEmbed extends MarkdownRenderChild {
 		this.plugin.activeHomeTabEmbeds.splice(
 			this.plugin.activeHomeTabEmbeds.findIndex(item => item == this), 1
 		);
-		this.searchBarHandler.suggester?.close();
+		this.searchBarHandler.unload();
 		unmount(this.homepage);
 	}
 

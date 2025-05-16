@@ -54,8 +54,6 @@ export class WebSuggester extends TextInputSuggester<FuseResult<LinkSearchFile>>
 		this.searchBarHandler = searchBar;
 		this.webviewerPlugin = this.app.internalPlugins.getPluginById('webviewer');
 		this.bookmarksPlugin = this.app.internalPlugins.getPluginById('bookmarks');
-
-		this._registerScope();
 	}
 
 	protected onOpen(): void {
@@ -132,8 +130,9 @@ export class WebSuggester extends TextInputSuggester<FuseResult<LinkSearchFile>>
 		return WebSuggestionItem;
 	}
 
+	protected registerScope(): void {
+		super.registerScope();
 
-	private _registerScope(): void {
 		// Open url in new tab
 		this.scope.register(['Mod'], 'Enter', evt => {
 			evt.preventDefault();
