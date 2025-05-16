@@ -51,5 +51,6 @@ export default [{
 		"@typescript-eslint/no-empty-function": "off",
 		"prefer-const": "off",
 		"no-cond-assign": "off",
+		"no-unused-labels": "off"
 	},
 }];
