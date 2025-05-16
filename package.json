@@ -4,7 +4,8 @@
 	"description": "A browser-like search tab for your local files.",
 	"main": "main.js",
 	"scripts": {
-		"dev": "npx tsx scripts/build-styles.mts && npx tsx scripts/esbuild.config.mts",
+		"dev": "npx tsx scripts/esbuild.config.mts",
+		"dev-styles": "sass --embed-source-map --watch styles/styles.scss dist/styles.css",
 		"build": "svelte-check --tsconfig tsconfig.json && npx tsx scripts/esbuild.config.mts production",
 		"build-styles": "npx tsx scripts/build-styles.mts production",
 		"version": "npx tsx scripts/version-bump.mts",
