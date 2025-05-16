@@ -102,9 +102,19 @@ export class HomeTabView extends FileView {
 				searchBarHandler: this.searchBarHandler
 			}
 		});
+
+		devel: console.log('Hometab opened');
+		devel: HomeTabView.counts++;
 	}
 
 	public async onClose(): Promise<void> {
+		this.searchBarHandler.unload();
+		unmount(this.homepage);
+
+		devel: console.log('Hometab closed');
+		devel: HomeTabView.counts--;
+	}
+
 	public async rebuild(): Promise<void> {
 		this.searchBarHandler.unload();
 		unmount(this.homepage);
@@ -121,4 +131,14 @@ export class HomeTabView extends FileView {
 			}
 		});
 
+		devel: console.log('Hometab rebuilt');
+	}
+
+	/**
+	 * If `counts` is greater than the amount of available view instances,
+	 * it leads to memory leaks.
+	 * 
+	 * @devel
+	 */
+	static counts = 0;
 }
