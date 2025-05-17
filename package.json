@@ -32,7 +32,6 @@
 		"esbuild-svelte": "^0.9.1",
 		"obsidian": "latest",
 		"sass": "^1.88.0",
-		"svelte": "^5.30.0",
 		"svelte-check": "^4.2.1",
 		"svelte-preprocess": "^6.0.3",
 		"tslib": "^2.8.1",
@@ -44,6 +43,7 @@
 		"fuse.js": "^7.1.0",
 		"lucide-static": "^0.508.0",
 		"lucide-svelte": "^0.508.0",
-		"monkey-around": "^3.0.0"
+		"monkey-around": "^3.0.0",
+		"svelte": "^5.30.1"
 	}
 }
