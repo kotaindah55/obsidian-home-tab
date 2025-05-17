@@ -26,6 +26,7 @@ export class HomeTabEmbed extends MarkdownRenderChild {
 	}
 
 	public onload(): void {
+		super.onload();
 		this.homepage = mount(Homepage, {
 			target: this.containerEl,
 			props: {
@@ -35,6 +36,9 @@ export class HomeTabEmbed extends MarkdownRenderChild {
 				searchBarHandler: this.searchBarHandler
 			}
 		});
+
+		devel: console.log('Hometab embed opened');
+		devel: HomeTabEmbed.counts++;
 	}
 
 	public onunload(): void {
@@ -43,9 +47,13 @@ export class HomeTabEmbed extends MarkdownRenderChild {
 		);
 		this.searchBarHandler.unload();
 		unmount(this.homepage);
+		super.onunload();
+
+		devel: console.log('Hometab embed closed');
+		devel: HomeTabEmbed.counts--;
 	}
 
-	private _parseCodeBlockContent(content: string) {
+	private _parseCodeBlockContent(content: string): void {
 		content.split('\n')
 			.map(line => line.trim())
 			.forEach(line => {
@@ -64,6 +72,14 @@ export class HomeTabEmbed extends MarkdownRenderChild {
 				}
 			});
 	}
+
+	/**
+	 * If `counts` is greater than the amount of available embeds, it leads
+	 * to memory leaks.
+	 * 
+	 * @devel
+	 */
+	static counts = 0;
 }
 
 export class HomeTabView extends ItemView {
@@ -92,6 +108,7 @@ export class HomeTabView extends ItemView {
 	}
 
 	public async onOpen(): Promise<void> {
+		super.onOpen();
 		this.homepage = mount(Homepage, {
 			target: this.contentEl,
 			props: {
@@ -109,6 +126,7 @@ export class HomeTabView extends ItemView {
 	public async onClose(): Promise<void> {
 		this.searchBarHandler.unload();
 		unmount(this.homepage);
+		super.onClose();
 
 		devel: console.log('Hometab closed');
 		devel: HomeTabView.counts--;

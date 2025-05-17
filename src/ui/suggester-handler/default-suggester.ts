@@ -55,13 +55,19 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 		this._toggleSearchBarContainerState(false);
 	}
 
+	/**
+	 * @override
+	 */
 	public onNoSuggestion(): void {
+		// To support showing create new file suggestion
+		// We replace prototype's method with this method
+		devel: console.log('%cDefault suggester:%c Handling on no-suggestion event', 'color: gray;', 'color: auto;');
 		if (
 			this._activeFilter &&
 			this._activeFilter.option !== FileType.MARKDOWN &&
 			this._activeFilter.option !== 'md'
 		) {
-			devel: console.log('Close soon...');
+			devel: console.log('%cDefault suggester:%c Closing suggester soon', 'color: gray;', 'color: auto;');
 			this.close();
 			return;
 		}
@@ -80,10 +86,10 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 				refIndex: 0,
 				score: 0,
 			}]);
-			devel: console.log('Input detected');
+			devel: console.log('%cDefault suggester:%c Displaying create new file', 'color: gray;', 'color: auto;');
 			this.open();
 		} else {
-			devel: console.log('No input detected');
+			devel: console.log('%cDefault suggester:%c No input detected, closing suggester soon', 'color: gray;', 'color: auto;');
 			this.close();
 		}
 	}
@@ -188,6 +194,7 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 	}
 
 	public setFileFilter(spec: FilterSpec): void {
+		devel: console.log('%cDefault suggester:%c Setting search filter', 'color: gray;', 'color: auto;');
 		this._activeFilter = spec;
 		
 		this.app.metadataCache.onCleanCache(() => {
@@ -197,7 +204,7 @@ export class DefaultSuggester extends TextInputSuggester<FuseResult<SearchFile>>
 					? getSearchFiles(this.app, this.plugin.settings.unresolvedLinks)
 					: this._files
 			));
-		})
+		});
 		
 		this.source.setSuggestions([]); // Reset search suggestions
 		this.close();

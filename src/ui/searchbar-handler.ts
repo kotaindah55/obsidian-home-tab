@@ -82,6 +82,7 @@ export class SearchBarHandler {
 	}
 
 	public updateActiveSuggester(filterKey: string) {
+		devel: console.log('%cSearchbar handler:%c Updating', 'color: gray;', 'color: auto;');
 		let filterType = _getFilterType(filterKey),
 			isFileFilter = filterType === FilterType.FILE_EXT || filterType === FilterType.FILE_TYPE,
 			filterOption = isFileFilter ? filterKey : undefined;

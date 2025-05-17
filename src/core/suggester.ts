@@ -58,6 +58,11 @@ export class SuggestionSource<T> {
 	}
 
 	public setSuggestions(suggestions: T[]): void {
+		devel: console.log(
+			suggestions.length == 0
+				? 'Reset suggestions'
+				: `Set ${suggestions.length} suggestion${suggestions.length == 1 ? '' : 's'}`
+		);
 		this.selectedIndexStore.set(0); // Reset selected item to the first result
 		this.sourceStore.set(suggestions); // Update suggestions list
 	}
@@ -150,7 +155,12 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 		this.closingAnimationRunning = false;
 	}
 
-	public async onInput(): Promise<void>{
+	/**
+	 * Handle input event. Usually, used to generate suggestion(s), then
+	 * display them.
+	 */
+	public async onInput(): Promise<void> {
+		devel: console.log('%cSuggester:%c Handling on input event', 'color: gray;', 'color: auto;');
 		let input = this.inputEl.value,
 			suggestions = await this.getSuggestions(input);
 		
@@ -164,7 +174,13 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 		}
 	}
 
+	/**
+	 * Run when no suggestion detected. Default action is closing current
+	 * suggester. Override this when you need to display suggestion(s) as
+	 * fallback.
+	 */
 	public onNoSuggestion(): void {
+		devel: console.log('%cSuggester:%c Handling on no-suggestion', 'color: gray;', 'color: auto;');
 		this.close();
 	}
 
@@ -172,10 +188,14 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 		return this.wrapperEl;
 	}
 
+	/**
+	 * When there is no result view opened, will create the new one.
+	 */
 	public open(): void {
 		if (this.closingAnimationRunning) this.abortClosingAnimation();
 		if (this.resultView) return;
 		
+		devel: console.log('%cSuggester:%c Opening', 'color: gray;', 'color: auto;');
 		this.containerEl = this.getWrapperEl();
 
 		this.app.keymap.pushScope(this.scope);
@@ -192,19 +212,24 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 		this.onOpen();
 	}
 
+	/**
+	 * Will reset any of suggestions left and remove containing result view.
+	 */
 	public close(): void {
+		devel: console.log('%cSuggester:%c Trying to close', 'color: gray;', 'color: auto;');
 		this.app.keymap.popScope(this.scope);
 
 		// Reset suggestions
 		this.source.setSuggestions([]);
 
-		// Allow svelte to run the animation, then remove the component(s)
+		// Allow svelte to run the animation, then remove the component(s).
 		if (this.resultView) {
 			this.closingAnimationRunning = true;
 			this.closingAnimationTimer = this.win.setTimeout(() => {
 				if (this.resultView) unmount(this.resultView);
 				this.resultView = undefined;
 				this.closingAnimationRunning = false;
+				devel: console.log('%cSuggester:%c Closing', 'color: gray;', 'color: auto;');
 			}, 200);
 		}
 
@@ -212,6 +237,9 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 		this.onClose();
 	}
 
+	/**
+	 * Abort in-progress closing animation on result view, then remove it.
+	 */
 	public abortClosingAnimation(): void {
 		if (this.closingAnimationTimer !== null) {
 			this.win.clearTimeout(this.closingAnimationTimer);
@@ -223,9 +251,14 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 		this.closingAnimationRunning = false;
 	}
 	
+	/**
+	 * Close, remove any component left, and detaching all registered events.
+	 */
 	public destroy(): void {
+		devel: console.log('%cSuggester:%c Destroying', 'color: gray;', 'color: auto;');
 		this.close();
 
+		devel: console.log('%cSuggester:%c Unloading all registered events', 'color: gray;', 'color: auto;');
 		// Detached all registered events
 		this.eventWrapper.unload();
 	}
@@ -241,12 +274,14 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	}
 
 	public setInput(input: string, triggerEvent = true): void {
+		devel: console.log('%cSuggester:%c Setting input', 'color: gray;', 'color: auto;');
 		this.inputEl.value = input;
 		if (triggerEvent)
 			this.inputEl.dispatchEvent(new InputEvent('input')); // Trigger input
 	}
 
 	protected registerEvents(): void {
+		devel: console.log('%cSuggester:%c Registering events', 'color: gray;', 'color: auto;');
 		// Load the wrapper, so it can detach its events when unloading
 		this.eventWrapper.load();
 		this.eventWrapper.registerDomEvent(this.inputEl, 'input', this._reqInputHandling);
@@ -254,6 +289,7 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	}
 
 	protected registerScope(): void {
+		devel: console.log('%cSuggester:%c Registering scope', 'color: gray;', 'color: auto;');
 		this.scope.register([], 'ArrowUp', evt => {
 			evt.preventDefault();
 			this.source.setSelectedIndex(this.source.getSelectedIndex() - 1);
