@@ -104,7 +104,7 @@ declare module 'obsidian' {
 
 	interface InternalPluginManager extends Events {
 		plugins: {
-			[ID in keyof InternalPluginInstanceMap]: InternalPlugin<InternalPluginInstanceMap<ID>>;
+			[ID in keyof InternalPluginInstanceMap]: InternalPlugin<InternalPluginInstanceMap[ID]>;
 		};
 		getPluginById<T extends IntenalPluginIDs>(id: T): InternalPlugin<InternalPluginInstanceMap[T]>;
 		getEnabledPluginById<T extends IntenalPluginIDs>(id: T): InternalPluginInstanceMap[T] | null;
@@ -136,6 +136,10 @@ declare module 'obsidian' {
 	}
 	
 	interface PluginManager {
+		enabledPlugins: Set<string>;
+		requestSaveConfig: Debouncer<[], void>;
+		disablePluginAndSave(id: string): Promise<void>;
+		enablePluginAndSave(id: string): Promise<boolean>;
 		getPlugin(id: string): Plugin | null;
 	}
 

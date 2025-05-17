@@ -9,7 +9,12 @@ const refreshIcons = (oldFn: FileIconManager['refreshIcons']) => function (
 	this.app.workspace.trigger('iconic:icons-refresh');
 }
 
-export function patchIconic(iconicPlugin: IconicPlugin): uninstaller {
-	let { fileIconManager } = iconicPlugin;
-	return around(fileIconManager, { refreshIcons });
+export function patchIconic(homeTabPlugin: HomeTabPlugin, iconicPlugin: IconicPlugin): uninstaller {
+	if (iconicPlugin.fileIconManager) {
+		let { fileIconManager } = iconicPlugin;
+		return around(fileIconManager, { refreshIcons });
+	} else {
+		homeTabPlugin.selfReenable();
+		return () => void 0;
+	}
 }

@@ -20,3 +20,13 @@ export function isWebviewerEnabled(app: App): boolean {
 export function isBookmarksEnabled(app: App): boolean {
 	return !!app.internalPlugins.getEnabledPluginById('bookmarks');
 }
+
+export async function reenablePlugin(app: App, id: string) {
+	let pluginManager = app.plugins;
+	try {
+		await pluginManager.disablePluginAndSave(id);
+		await pluginManager.enablePluginAndSave(id);
+	} catch (err) {
+		console.log('Error when reenable the plugin:\n', err);
+	}
+}

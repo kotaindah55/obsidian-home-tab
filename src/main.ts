@@ -1,4 +1,4 @@
-import { App, debounce, Platform, Plugin, type PluginManifest } from 'obsidian';
+import { App, debounce, Notice, Platform, Plugin, type PluginManifest } from 'obsidian';
 import { DEFAULT_SETTINGS, type HomeTabSettings } from 'src/settings/settings-config';
 import { RecentFileManager } from 'src/file-manager/recent-files';
 import { BookmarkedFileManager } from 'src/file-manager/bookmarked-files';
@@ -8,7 +8,7 @@ import { bookmarkedFileStore, settingsStore } from 'src/store';
 import type { uninstaller } from 'monkey-around';
 import { proxifySettings } from 'src/proxy';
 import { patchIconic } from 'src/patch/iconic-patch';
-import { proxifyViewFieldOnWorkspaceLeaf } from 'src/patch/workspace-leaf-patch';
+import { reenablePlugin } from 'src/utils/plugin-utils';
 
 export default class HomeTabPlugin extends Plugin {
 	public settings: HomeTabSettings;
@@ -138,10 +138,18 @@ export default class HomeTabPlugin extends Plugin {
 			});
 	}
 
+	public async selfReenable(): Promise<void> {
+		new Notice(
+			'Home tab was reenabled, because another plugin Home tab depends on ' +
+			'was loaded after Home tab.', 0
+		);
+		await reenablePlugin(this.app, this.manifest.id);
+	}
+
 	private _registerPatch(): void {
 		let iconicPlugin = this.app.plugins.getPlugin('iconic');
 		if (iconicPlugin) {
-			this._patchContracts.push(patchIconic(iconicPlugin));
+			this._patchContracts.push(patchIconic(this, iconicPlugin));
 		}
 				
 		// Replace new tabs with home tab view
