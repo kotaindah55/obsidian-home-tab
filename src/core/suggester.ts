@@ -243,10 +243,12 @@ export abstract class TextInputSuggester<T> implements ISuggester<T> {
 	public setInput(input: string, triggerEvent = true): void {
 		this.inputEl.value = input;
 		if (triggerEvent)
-			this.inputEl.dispatchEvent(new Event('input')); // Trigger input
+			this.inputEl.dispatchEvent(new InputEvent('input')); // Trigger input
 	}
 
 	protected registerEvents(): void {
+		// Load the wrapper, so it can detach its events when unloading
+		this.eventWrapper.load();
 		this.eventWrapper.registerDomEvent(this.inputEl, 'input', this._reqInputHandling);
 		this.eventWrapper.registerDomEvent(this.inputEl, 'blur', this.close.bind(this));
 	}
