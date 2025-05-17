@@ -1,3 +1,11 @@
+[2.0.2]
+### Adjustment
+Revert previous bug fix: `Default new tab view appears before changing to the Home tab view`,
+as it causes some errors when loading/unloading another plugin.
+
+### Bug fixes
+Stacking suggestion results appear after using search filter.
+---
 [2.0.1]
 ### Bug fixes
 - Default new tab appears after changing certain settings.
