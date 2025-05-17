@@ -29,7 +29,13 @@ export default class HomeTabPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.addSettingTab(new HomeTabSettingTab(this.app, this));
-		this.registerView(HOMETAB_VIEW_TYPE, leaf => new HomeTabView(leaf, this));		
+		this.registerView(HOMETAB_VIEW_TYPE, leaf => new HomeTabView(leaf, this));
+
+		this.registerMarkdownCodeBlockProcessor('search-bar', (source, el, ctx) => {
+			let embeddedHomeTab = new HomeTabEmbed(el, this, source);
+			this.activeHomeTabEmbeds.push(embeddedHomeTab);
+			ctx.addChild(embeddedHomeTab);
+		});
 
 		// Refocus search bar on leaf change
 		this.registerEvent(this.app.workspace.on('active-leaf-change', leaf => {
@@ -55,50 +61,11 @@ export default class HomeTabPlugin extends Plugin {
 		});
 
 		// Wait for all plugins to load before check if the bookmarked plugin is enabled
-		this.app.workspace.onLayoutReady(() => {
-			this.recentFileManager.load();
-			this.bookmarkedFileManager.load();
-
-			this.registerMarkdownCodeBlockProcessor('search-bar', (source, el, ctx) => {
-				let embeddedHomeTab = new HomeTabEmbed(el, this, source);
-				this.activeHomeTabEmbeds.push(embeddedHomeTab);
-				ctx.addChild(embeddedHomeTab);
-			});
-
-			if (this.settings.newTabOnStart) {
-				// If an Home tab leaf is already open focus it
-				let leaves = this.app.workspace.getLeavesOfType(HOMETAB_VIEW_TYPE);
-				if (leaves.length > 0) {
-					this.app.workspace.revealLeaf(leaves[0])
-					// If more than one home tab leaf is open close them
-					leaves.forEach((leaf, index) => {
-						if (index < 1) return;
-						leaf.detach();
-					});
-				} else {
-					this.activateView(false, true);
-				}
-				// Close all other open leaves
-				if (this.settings.closePreviousSessionTabs) {
-					// Get open leaves type
-					let leafTypes: string[] = [];
-					this.app.workspace.iterateRootLeaves(leaf => {
-						let leafType = leaf.view.getViewType();
-						if (leafTypes.indexOf(leafType) < 0 && leafType != HOMETAB_VIEW_TYPE)
-							leafTypes.push(leafType);
-					});
-					leafTypes.forEach(type => this.app.workspace.detachLeavesOfType(type));
-				}
-			}
-
-			this._registerPatch();
-		})
+		this.app.workspace.onLayoutReady(this._onLayoutReady.bind(this));
 	}
 
 	public onunload(): void {
 		console.log('Unloading Home Tab (mod) plugin');
-		this.app.workspace.detachLeavesOfType(HOMETAB_VIEW_TYPE);
-		this.activeHomeTabEmbeds.forEach(embed => embed.unload());
 		this.recentFileManager.unload();
 		this.bookmarkedFileManager.unload();
 		this._uninstallPatch();
@@ -121,7 +88,7 @@ export default class HomeTabPlugin extends Plugin {
 		let leaf = openNewTab
 			? this.app.workspace.getLeaf('tab')
 			: this.app.workspace.getMostRecentLeaf();
-		// const leaf = newTab ? this.app.workspace.getLeaf() : this.app.workspace.getMostRecentLeaf()
+
 		if (leaf && (overrideView || leaf.getViewState().type === 'empty')) {
 			leaf.setViewState({ type: HOMETAB_VIEW_TYPE });
 			// Focus newly opened tab
@@ -151,14 +118,52 @@ export default class HomeTabPlugin extends Plugin {
 		if (iconicPlugin) {
 			this._patchContracts.push(patchIconic(this, iconicPlugin));
 		}
-				
-		// Replace new tabs with home tab view
-		this._patchContracts.push(
-			proxifyViewFieldOnWorkspaceLeaf(this)
-		);
 	}
 
 	private _uninstallPatch(): void {
 		this._patchContracts.forEach(uninstaller => uninstaller());
+	}
+
+	private _onLayoutReady(): void {
+		this.recentFileManager.load();
+		this.bookmarkedFileManager.load();
+
+		this.registerEvent(this.app.workspace.on(
+			'layout-change',
+			this._onLayoutChange.bind(this)
+		));
+
+		if (this.settings.newTabOnStart) {
+			// If an Home tab leaf is already open focus it
+			let leaves = this.app.workspace.getLeavesOfType(HOMETAB_VIEW_TYPE);
+			if (leaves.length > 0) {
+				this.app.workspace.revealLeaf(leaves[0])
+				// If more than one home tab leaf is open close them
+				leaves.forEach((leaf, index) => {
+					if (index < 1) return;
+					leaf.detach();
+				});
+			} else {
+				this.activateView(false, true);
+			}
+			// Close all other open leaves
+			if (this.settings.closePreviousSessionTabs) {
+				// Get open leaves type
+				let leafTypes: string[] = [];
+				this.app.workspace.iterateRootLeaves(leaf => {
+					let leafType = leaf.view.getViewType();
+					if (leafTypes.indexOf(leafType) < 0 && leafType != HOMETAB_VIEW_TYPE)
+						leafTypes.push(leafType);
+				});
+				leafTypes.forEach(type => this.app.workspace.detachLeavesOfType(type));
+			}
+		}
+
+		this._registerPatch();
+	}
+
+	private _onLayoutChange(): void {
+		if (this.settings.replaceNewTabs)
+			this.activateView();
 	}
 }
