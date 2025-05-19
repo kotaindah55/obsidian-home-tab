@@ -1,3 +1,10 @@
+[2.0.3]
+### Adjustment
+Dropping any dragged file/folder above the search bar will paste its name instead.
+
+### Bug fix
+Icon inside dragged element now has a color based on Iconic configuration.
+---
 [2.0.2]
 ### Adjustment
 Revert previous bug fix: `Default new tab view appears before changing to the Home tab view`,
