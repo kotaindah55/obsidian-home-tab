@@ -74,7 +74,20 @@ declare module 'obsidian' {
 		| 'link';
 
 	interface DragManager {
+		ghostEl: HTMLElement | null;
 		handleDrag(el: HTMLElement, draggableGetter: (event: DragEvent) => Draggable | null): void;
+		handleDrop(
+			target: HTMLElement,
+			handler: (event: DragEvent, draggable: Draggable | null, isOver: boolean) => DropResult | null,
+			isDraggable?: boolean
+		): void;
+	}
+
+	interface DropResult {
+		action?: string;
+		dropEffect: 'none' | 'copy' | 'link' | 'move';
+		hoverClass?: string;
+		hoverEl?: HTMLElement;
 	}
 
 	interface Editor {
