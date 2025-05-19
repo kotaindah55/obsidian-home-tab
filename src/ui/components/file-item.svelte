@@ -1,11 +1,12 @@
 <script lang='ts'>
 	import { MoreHorizontal, File } from 'lucide-svelte';
-	import { App, Keymap, Menu, Platform, type EventRef, type PaneType, type TFile } from 'obsidian';
+	import { App, debounce, Keymap, Menu, Platform, type EventRef, type PaneType, type TFile } from 'obsidian';
 	import { NON_ASCII_RE } from 'src/data/regexps';
 	import type { HomeTabSettings } from 'src/settings/settings-config';
 	import { getFileIcon, getFileIconDesc } from 'src/utils/component-utils';
 	import { onDestroy, onMount } from 'svelte';
 	import type { HomeTabEmbed, HomeTabView } from '../view';
+	import { getBaseColorVariable } from 'src/utils/style-utils';
 
 	interface FileItemCompProps {
 		app: App;
@@ -79,6 +80,12 @@
 					dataTransfer.setData('text/plain', link);
 					dataTransfer.setData('text/uri-list', link);
 				}
+
+				debounce(() => {
+					let ghostIconSvg = app.dragManager.ghostEl?.querySelector('svg');
+					let color = iconDesc?.color && getBaseColorVariable(iconDesc.color) || 'currentColor';
+					if (ghostIconSvg) ghostIconSvg.setAttr('stroke', color);
+				})();
 
 				return {
 					file,
